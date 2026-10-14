@@ -90,7 +90,10 @@ module tb_mult;
                 // edge, the product is captured at the second.
                 @(posedge clk);   // edge 1: a, b -> a_reg, b_reg
                 @(posedge clk);   // edge 2: array result -> p
-                #1;               // let p settle before sampling
+                @(negedge clk);   // sample mid-cycle, clear of the clock edge.
+                                  // Gate-level cells carry a UNIT_DELAY, so
+                                  // sampling right at the edge races with Q
+                                  // and reads the previous vector's result.
 
                 expected = ia[3:0] * ib[3:0];
                 checked  = checked + 1;

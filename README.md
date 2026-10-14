@@ -54,7 +54,44 @@ B = 7. Roll number used: Monishram Selvaraj, 2024102076.
 ### Part B — Synthesis
 
 ```
+yosys -c synth/synth.tcl
 ```
+
+Gate-level simulation of the synthesized netlist (same testbench as Part A):
+
+```
+CELLS=$PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd/verilog
+iverilog -g2012 -DFUNCTIONAL -DUNIT_DELAY=#1 -o gls \
+  tb/tb_mult.v $CELLS/primitives.v $CELLS/sky130_fd_sc_hd.v \
+  synth/mult_array_netlist.v
+vvp gls
+```
+
+Result:
+
+```
+PASS: 256 vectors checked, 0 errors
+```
+
+#### Part B results
+
+| Metric | Value |
+|---|---|
+| Total number of cells | 67 |
+| Number of flip-flops | 16 |
+| Total cell area | 746.9664 um^2 |
+| Flip-flop area | 400.384 um^2 (16 x 25.024) |
+| Flip-flop area (% of total) | 53.60% |
+| 3 most-used cell types | `dfrtp_1` (16), `nand2_1` (12), `xnor2_1` (7) |
+| Netlist simulation result | PASS: 256 vectors checked, 0 errors |
+
+Logic cells (total minus flip-flops): 67 - 16 = 51.
+
+Note: the first gate-level run failed with every result lagging one vector
+behind. The cause was in the testbench, not the design: `-DUNIT_DELAY=#1`
+gives each standard cell a one-unit delay, so sampling `p` at `#1` after the
+clock edge raced with the flip-flop output. Sampling at `@(negedge clk)`
+instead puts it clear of the edge, and both RTL and gate-level now pass.
 
 ### Part C — Static timing analysis
 
