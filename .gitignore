@@ -1,0 +1,7 @@
+# LibreLane run directories are very large - do not commit (assignment section 9)
+pnr/runs/
+runs/
+# Simulation binaries and waveforms
+sim
+gls
+*.vcd
