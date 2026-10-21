@@ -96,9 +96,60 @@ instead puts it clear of the edge, and both RTL and gate-level now pass.
 ### Part C — Static timing analysis
 
 ```
+sta sta/sta.tcl
 ```
 
+Run first with `CLK_PERIOD 10.0`, then again with `CLK_PERIOD` set to T_min to
+confirm the slack is close to zero.
+
+#### Part C results
+
+| Metric | Value |
+|---|---|
+| Worst slack at T = 10 ns | 7.396 ns |
+| T_min | 2.604 ns (10 - 7.396) |
+| F_max | 384.0 MHz (1000 / 2.604) |
+| Slack at T = T_min (2.60 ns) | -0.00 ns |
+| Critical path start point | `_106_` (sky130_fd_sc_hd__dfrtp_1 flip-flop) |
+| Critical path end point | `_100_` (sky130_fd_sc_hd__dfrtp_1 flip-flop) |
+| Number of cells on the critical path | 8 combinational (10 including both flip-flops) |
+| Latency = 2 x T_min | 5.208 ns |
+| Throughput | 384.0 million results per second |
+
+Cells on the critical path, in order:
+
+```
+_106_/Q    dfrtp_1     0.388   launching flip-flop
+_043_/X    and2_0      0.180
+_056_/X    or3_1       0.391
+_058_/Y    a32oi_1     0.250
+_072_/X    o21ba_1     0.198
+_073_/Y    xnor2_1     0.147
+_082_/X    maj3_1      0.385
+_084_/X    maj3_1      0.358
+_088_/X    xnor3_1     0.175
+_100_/D    dfrtp_1     0.000   capturing flip-flop
+                       -----
+         arrival time  2.471 ns
+```
+
+Of the 8 combinational cells, 4 are adder arithmetic: two `maj3_1` (full-adder
+carry, the majority function), one `xnor3_1` (full-adder sum) and one `xnor2_1`
+(half-adder sum). `and2_0` is a partial-product gate; `or3_1`, `a32oi_1` and
+`o21ba_1` are merged carry logic.
+
 ### Part D — Physical design
+
+`CLOCK_PERIOD` is derived from Part C:
+
+```
+1.2 x T_min = 1.2 x 2.604 = 3.125 ns  ->  rounded up to the next 0.5 ns  =  3.5 ns
+```
+
+```
+cd pnr
+librelane config.json
+```
 
 LibreLane attempts (record every run, including failed ones):
 
