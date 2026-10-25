@@ -153,12 +153,61 @@ librelane config.json
 
 LibreLane attempts (record every run, including failed ones):
 
-| Attempt | CLOCK_PERIOD (ns) | Setup slack | DRC | LVS | Result |
-|---|---|---|---|---|---|
-| 1 | | | | | |
+| Attempt | Run folder | CLOCK_PERIOD (ns) | Setup slack, typical corner (ns) | DRC | LVS | Result |
+|---|---|---|---|---|---|---|
+| 1 | `RUN_2026-10-25_10-24-37` | 3.5 | +0.605 | 0 | 0 | Pass |
+
+Final outputs copied out of the run folder for submission:
 
 ```
+cp runs/RUN_2026-10-25_10-24-37/final/metrics.json .
+cp runs/RUN_2026-10-25_10-24-37/final/gds/mult_array.gds .
 ```
+
+#### Part D results
+
+| Metric | Value |
+|---|---|
+| CLOCK_PERIOD used | 3.5 ns |
+| Number of runs needed | 1 |
+| Core area | 17759.5 um^2 (die 150 x 150 = 22500 um^2) |
+| Cells after synthesis (Part B) | 67 |
+| Cells after place and route | 1886 |
+| Kinds of cells added | decap, fill, tap, input/output buffers, clock buffers, timing-repair buffers |
+| Wirelength | 2381 um |
+| Setup slack | +0.605 ns (typical corner, `nom_tt_025C_1v80`) |
+| Post-route Fmax | 345.4 MHz (1000 / (3.5 - 0.605)) |
+| Fmax from Part C | 384.0 MHz |
+| DRC errors | 0 (Magic 0, KLayout 0) |
+| LVS errors | 0 |
+
+Where the 1886 cells come from (`metrics.json` and the final netlist):
+
+| Kind | Cells | Count |
+|---|---|---|
+| Decap | `decap_3`, `decap_4`, `decap_6`, `decap_8`, `decap_12` | 1292 |
+| Fill | `fill_1`, `fill_2` | 258 |
+| Tap | `tapvpwrvgnd_1` | 245 |
+| Input/output buffers | `buf_2` (`input1`-`input9`, `output10`-`output17`) | 17 |
+| Clock tree buffers | `clkbuf_16` | 3 |
+| Setup repair buffers | `buf_4` (`rebuffer*`) | 5 |
+| Hold fix delay cells | `dlygate4sd3_1` (`hold*`) | 3 |
+| Fanout buffers | `clkdlybuf4s50_1` (`fanout*`) | 2 |
+| Logic | | 45 |
+| Flip-flops | `dfrtp_1` | 16 |
+| Total | | 1886 |
+
+Logic is 45 cells here against 51 in Part B because LibreLane runs its own
+Yosys synthesis from the RTL rather than reusing `synth/mult_array_netlist.v`.
+
+Timing corner: Parts B and C use the typical corner (`tt_025C_1v80`), so the
+slack above is the typical-corner value, keeping the comparison with Part C
+like for like. LibreLane also analyses fast and slow corners. All fast and
+typical corners pass setup. The slow corner (`ss_100C_1v60`: 1.60 V, 100 C)
+does not: the all-corner `timing__setup__ws` in `metrics.json` is -2.118 ns,
+with 5 violations in each slow corner. LibreLane did not report this as a flow
+error (`error.log` is empty). Hold slack is positive at all nine corners
+(worst +0.104 ns).
 
 ## Repository layout
 
