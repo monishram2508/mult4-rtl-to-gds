@@ -48,8 +48,9 @@ MISMATCH: a=3 b=7 expected=21 (00010101) got=9 (00001001) at time 1146000
 FAIL: 256 vectors checked, 95 errors
 ```
 
-Worked example (task 5): A = last digit of roll number 2024102076 (6) + 5 = 11,
-B = 7. Roll number used: Monishram Selvaraj, 2024102076.
+Worked example (task 5): A = last digit of roll number 2024102007 (7) + 5 = 12,
+B = 7, so A x B = 84. Roll number used: Neel Rajesh, 2024102007. In the
+waveform the inputs are applied at 6000 ns and p = 84 is captured at 6015 ns.
 
 ### Part B — Synthesis
 
